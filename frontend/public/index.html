@@ -1981,6 +1981,8 @@
     });
 
     // ── Ambient AI Chat Interface ──────────────────────────────
+    // API base URL — injected by CRA from REACT_APP_BACKEND_URL env var
+    const API_BASE_URL = ('%REACT_APP_BACKEND_URL%' || '').replace(/\/+$/, '');
     const sessionId = 'xi-' + Math.random().toString(36).substring(2, 15);
     const conversationArea = document.getElementById('conversation-area');
     const ambientInput = document.getElementById('ambient-input');
@@ -2091,7 +2093,7 @@
       addTypingIndicator();
       
       try {
-        const response = await fetch('/api/chat', {
+        const response = await fetch(API_BASE_URL + '/api/chat', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -2137,7 +2139,7 @@
       if (!email) return;
       
       try {
-        const response = await fetch('/api/chat/capture-email', {
+        const response = await fetch(API_BASE_URL + '/api/chat/capture-email', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
