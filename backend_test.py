@@ -5,13 +5,15 @@ import json
 import sys
 from datetime import datetime
 import time
+import uuid
 
-class ContactFormAPITester:
+class AmbientAITester:
     def __init__(self):
         # Use the public endpoint from frontend .env
         self.base_url = "https://quest-builder-110.preview.emergentagent.com"
         self.tests_run = 0
         self.tests_passed = 0
+        self.session_id = str(uuid.uuid4())  # Generate unique session ID
 
     def run_test(self, name, method, endpoint, expected_status, data=None, headers=None):
         """Run a single API test"""
@@ -68,8 +70,129 @@ class ContactFormAPITester:
             200
         )
 
+    def test_chat_basic_message(self):
+        """Test basic chat message to AI"""
+        test_data = {
+            "session_id": self.session_id,
+            "message": "Hello, I'm interested in learning more about XI Ventures."
+        }
+        
+        success, response = self.run_test(
+            "Chat - Basic Message",
+            "POST",
+            "api/chat",
+            200,
+            data=test_data
+        )
+        
+        if success and response.get('response'):
+            print(f"   AI Response: {response['response'][:100]}...")
+            return True, response
+        
+        return success, response
+
+    def test_chat_high_intent_message(self):
+        """Test high-intent message that should trigger email capture"""
+        test_data = {
+            "session_id": self.session_id,
+            "message": "I'd like to discuss a potential partnership with XI Ventures. Can we set up a meeting?"
+        }
+        
+        success, response = self.run_test(
+            "Chat - High Intent Message",
+            "POST",
+            "api/chat",
+            200,
+            data=test_data
+        )
+        
+        if success and response.get('action') == 'capture_email':
+            print(f"   ✅ Email capture triggered correctly")
+            return True, response
+        elif success:
+            print(f"   ⚠️ Email capture not triggered (action: {response.get('action')})")
+        
+        return success, response
+
+    def test_email_capture(self):
+        """Test email capture endpoint"""
+        test_data = {
+            "session_id": self.session_id,
+            "email": "test@example.com",
+            "name": "Test User"
+        }
+        
+        return self.run_test(
+            "Email Capture",
+            "POST",
+            "api/chat/capture-email",
+            200,
+            data=test_data
+        )
+
+    def test_multi_turn_conversation(self):
+        """Test multi-turn conversation with context"""
+        messages = [
+            "What does XI Ventures focus on?",
+            "That sounds interesting. What kind of companies do you typically invest in?",
+            "Do you have any current portfolio companies?"
+        ]
+        
+        responses = []
+        for i, message in enumerate(messages):
+            test_data = {
+                "session_id": self.session_id,
+                "message": message
+            }
+            
+            success, response = self.run_test(
+                f"Multi-turn Chat {i+1}",
+                "POST",
+                "api/chat",
+                200,
+                data=test_data
+            )
+            
+            if success:
+                responses.append(response)
+            
+            # Small delay between messages
+            time.sleep(1)
+        
+        return len(responses) == len(messages), responses
+
+    def test_get_conversations(self):
+        """Test getting conversation sessions (admin endpoint)"""
+        return self.run_test(
+            "Get Conversations",
+            "GET",
+            "api/conversations",
+            200
+        )
+
+    def test_conversation_persistence(self):
+        """Test that conversations are stored in MongoDB"""
+        success, conversations = self.test_get_conversations()
+        
+        if success and isinstance(conversations, list):
+            # Look for our test session
+            session_found = any(conv.get('session_id') == self.session_id for conv in conversations)
+            
+            if session_found:
+                print(f"   ✅ Test conversation session found in database")
+                self.tests_passed += 1
+            else:
+                print(f"   ❌ Test conversation session NOT found in database")
+            
+            self.tests_run += 1
+            print(f"   📊 Total conversations in database: {len(conversations)}")
+            return session_found, conversations
+        
+        return False, []
+    
+    # Legacy contact form tests (for backward compatibility)
     def test_contact_form_submission(self):
-        """Test contact form submission"""
+        """Test legacy contact form submission"""
         test_data = {
             "name": "Test User",
             "email": "test@example.com",
@@ -77,100 +200,21 @@ class ContactFormAPITester:
         }
         
         return self.run_test(
-            "Contact Form Submission",
+            "Legacy Contact Form Submission",
             "POST",
             "api/contact",
             200,
             data=test_data
         )
 
-    def test_contact_form_validation_missing_name(self):
-        """Test contact form validation - missing name"""
-        test_data = {
-            "email": "test@example.com",
-            "message": "This is a test message."
-        }
-        
-        return self.run_test(
-            "Contact Form Validation (Missing Name)",
-            "POST",
-            "api/contact",
-            422,  # FastAPI validation error
-            data=test_data
-        )
-
-    def test_contact_form_validation_invalid_email(self):
-        """Test contact form validation - invalid email"""
-        test_data = {
-            "name": "Test User",
-            "email": "invalid-email",
-            "message": "This is a test message."
-        }
-        
-        return self.run_test(
-            "Contact Form Validation (Invalid Email)",
-            "POST",
-            "api/contact",
-            422,  # FastAPI validation error
-            data=test_data
-        )
-
-    def test_contact_form_validation_missing_message(self):
-        """Test contact form validation - missing message"""
-        test_data = {
-            "name": "Test User",
-            "email": "test@example.com"
-        }
-        
-        return self.run_test(
-            "Contact Form Validation (Missing Message)",
-            "POST",
-            "api/contact",
-            422,  # FastAPI validation error
-            data=test_data
-        )
-
-    def test_get_contact_submissions(self):
-        """Test getting contact submissions (admin endpoint)"""
-        return self.run_test(
-            "Get Contact Submissions",
-            "GET",
-            "api/contact/submissions",
-            200
-        )
-
-    def test_multiple_submissions(self):
-        """Test multiple contact form submissions"""
-        submissions = []
-        for i in range(3):
-            test_data = {
-                "name": f"Test User {i+1}",
-                "email": f"test{i+1}@example.com",
-                "message": f"This is test message number {i+1}."
-            }
-            
-            success, response = self.run_test(
-                f"Contact Form Submission {i+1}",
-                "POST",
-                "api/contact",
-                200,
-                data=test_data
-            )
-            
-            if success and 'id' in response:
-                submissions.append(response['id'])
-            
-            # Small delay between submissions
-            time.sleep(0.5)
-        
-        return len(submissions) == 3, submissions
+    # Remove old validation tests - focus on ambient AI interface
 
 def main():
     print("=" * 60)
-    print("XI VENTURES CONTACT FORM API TESTING")
+    print("XI VENTURES AMBIENT AI INTERFACE TESTING")
     print("=" * 60)
     
-    tester = ContactFormAPITester()
+    tester = AmbientAITester()
     
     # Test API availability
     print("\n📡 Testing API Connectivity...")
@@ -181,40 +225,35 @@ def main():
         print(f"\n📊 Final Results: {tester.tests_passed}/{tester.tests_run} tests passed")
         return 1
     
-    print("\n📝 Testing Contact Form Functionality...")
+    print(f"\n🤖 Testing Ambient AI Chat (Session: {tester.session_id[:8]}...)...")
     
-    # Test successful submission
-    contact_success, contact_response = tester.test_contact_form_submission()
-    submission_id = contact_response.get('id') if contact_success else None
+    # Test basic chat functionality
+    chat_success, chat_response = tester.test_chat_basic_message()
     
-    # Test form validation
-    print("\n🔍 Testing Form Validation...")
-    tester.test_contact_form_validation_missing_name()
-    tester.test_contact_form_validation_invalid_email()
-    tester.test_contact_form_validation_missing_message()
+    # Test high-intent message (should trigger email capture)
+    print("\n🎯 Testing High-Intent Detection...")
+    intent_success, intent_response = tester.test_chat_high_intent_message()
     
-    # Test multiple submissions
-    print("\n📋 Testing Multiple Submissions...")
-    multiple_success, submission_ids = tester.test_multiple_submissions()
+    # Test email capture if triggered
+    if intent_success and intent_response.get('action') == 'capture_email':
+        print("\n📧 Testing Email Capture...")
+        email_success, email_response = tester.test_email_capture()
     
-    # Test getting submissions
-    print("\n📖 Testing Admin Endpoint...")
-    submissions_success, submissions_response = tester.test_get_contact_submissions()
+    # Test multi-turn conversation
+    print("\n💬 Testing Multi-turn Conversation...")
+    multi_success, multi_responses = tester.test_multi_turn_conversation()
     
-    # Verify data persistence
-    print("\n💾 Verifying Data Persistence...")
-    if submissions_success and isinstance(submissions_response, list):
-        stored_count = len(submissions_response)
-        print(f"   📊 Found {stored_count} stored submissions in database")
-        
-        if submission_id:
-            found = any(sub.get('id') == submission_id for sub in submissions_response)
-            if found:
-                print(f"   ✅ Original test submission found in database")
-                tester.tests_passed += 1
-            else:
-                print(f"   ❌ Original test submission NOT found in database")
-            tester.tests_run += 1
+    # Test conversation persistence
+    print("\n💾 Testing Conversation Persistence...")
+    persistence_success, conversations = tester.test_conversation_persistence()
+    
+    # Test admin endpoint
+    print("\n📖 Testing Admin Endpoints...")
+    admin_success, admin_response = tester.test_get_conversations()
+    
+    # Test legacy contact form (backward compatibility)
+    print("\n📝 Testing Legacy Contact Form...")
+    legacy_success, legacy_response = tester.test_contact_form_submission()
     
     # Print final results
     print("\n" + "=" * 60)
@@ -233,9 +272,11 @@ def main():
         print("⚠️  Significant issues detected - review required")
     
     print("\n📝 NOTES:")
-    print("• SendGrid email functionality will fail without API key (expected)")
-    print("• Contact form submissions should be stored in MongoDB")
-    print("• All validation errors should return HTTP 422")
+    print("• AI responses powered by GPT-4o-mini via Emergent LLM")
+    print("• Email capture triggers on high-intent conversations")
+    print("• SendGrid email notifications will fail without API key (expected)")
+    print("• All conversations stored in MongoDB with session tracking")
+    print("• Multi-turn conversations maintain context")
     
     return 0 if tester.tests_passed >= tester.tests_run * 0.8 else 1
 

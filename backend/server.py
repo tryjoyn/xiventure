@@ -14,6 +14,9 @@ from datetime import datetime, timezone
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 
+# Emergent LLM imports
+from emergentintegrations.llm.chat import LlmChat, UserMessage
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
@@ -41,7 +44,7 @@ class StatusCheckCreate(BaseModel):
     client_name: str
 
 
-# Contact Form Models
+# Contact Form Models (legacy - kept for backward compatibility)
 class ContactFormSubmission(BaseModel):
     model_config = ConfigDict(extra="ignore")
     
@@ -64,11 +67,72 @@ class ContactFormResponse(BaseModel):
     id: Optional[str] = None
 
 
+# Ambient Chat Models
+class ChatMessage(BaseModel):
+    role: str  # "user" or "assistant"
+    content: str
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ConversationSession(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    session_id: str
+    messages: List[dict] = []
+    email_captured: Optional[str] = None
+    name_captured: Optional[str] = None
+    intent: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ChatRequest(BaseModel):
+    session_id: str
+    message: str
+
+class ChatResponse(BaseModel):
+    response: str
+    session_id: str
+    action: Optional[str] = None  # "capture_email", "book_call", None
+    intent: Optional[str] = None
+
+
+# XI Ventures System Prompt
+XI_SYSTEM_PROMPT = """You are XI Intelligence, the AI assistant for XI Ventures (Extended Intelligence Ventures). 
+
+About XI Ventures:
+- We believe human expertise should scale itself through AI
+- We back founders building the future of work, where AI amplifies human potential
+- We invest in AI-native companies transforming how knowledge workers operate
+
+Your personality:
+- Warm but concise - never verbose
+- Intellectually curious
+- Speak like a thoughtful VC partner, not a corporate bot
+- Use "we" when referring to XI Ventures
+
+Your goals:
+1. Understand what the visitor is looking for
+2. Provide helpful, relevant responses
+3. When appropriate, offer to connect them with the team
+
+Response guidelines:
+- Keep responses under 3 sentences unless more detail is needed
+- Be conversational, not formal
+- If someone wants to connect, ask for their email naturally
+- If they mention investing, partnerships, or collaboration - they're high-intent
+- For general questions about XI, answer directly from the context above
+
+When you detect the user wants to connect or share contact info, end your response with one of these exact phrases:
+- If they should share email: [ACTION:CAPTURE_EMAIL]
+- If they should book a call: [ACTION:BOOK_CALL]
+
+Never show these action tags to the user in your visible response - they are for system use only.
+The action tag should be at the very end, after your conversational response."""
+
+
 # Email Service
 def send_contact_notification_email(name: str, email: str, message: str, submission_id: str):
-    """
-    Send contact form notification via SendGrid
-    """
+    """Send contact form notification via SendGrid"""
     sendgrid_api_key = os.environ.get('SENDGRID_API_KEY')
     sender_email = os.environ.get('SENDER_EMAIL', 'noreply@xi.ventures')
     recipient_email = os.environ.get('CONTACT_EMAIL', 'ping@xi.ventures')
@@ -76,14 +140,14 @@ def send_contact_notification_email(name: str, email: str, message: str, submiss
     if not sendgrid_api_key:
         raise Exception("SendGrid API key not configured")
     
-    subject = f"XI Ventures Contact Form: New message from {name}"
+    subject = f"XI Ventures: New conversation from {name}"
     
     html_content = f"""
     <html>
         <body style="font-family: 'Barlow', Arial, sans-serif; background-color: #0a0a0a; color: #ffffff; padding: 40px;">
             <div style="max-width: 600px; margin: 0 auto; background-color: #0d0d0d; border: 1px solid rgba(255,255,255,0.1); padding: 40px;">
                 <h2 style="color: #c09e53; font-size: 24px; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 0.1em;">
-                    New Contact Form Submission
+                    New Contact via XI Intelligence
                 </h2>
                 
                 <div style="margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.1);">
@@ -97,14 +161,14 @@ def send_contact_notification_email(name: str, email: str, message: str, submiss
                 </div>
                 
                 <div style="margin-bottom: 24px;">
-                    <p style="color: rgba(255,255,255,0.6); font-size: 12px; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 8px;">Message</p>
+                    <p style="color: rgba(255,255,255,0.6); font-size: 12px; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 8px;">Conversation Context</p>
                     <p style="color: rgba(255,255,255,0.92); font-size: 15px; line-height: 1.7; margin: 0; white-space: pre-wrap;">{message}</p>
                 </div>
                 
                 <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
                     <p style="color: rgba(255,255,255,0.5); font-size: 12px; margin: 0;">
-                        Submission ID: {submission_id}<br>
-                        Submitted via xi.ventures contact form
+                        Session ID: {submission_id}<br>
+                        Captured via XI Intelligence ambient interface
                     </p>
                 </div>
             </div>
@@ -128,24 +192,13 @@ def send_contact_notification_email(name: str, email: str, message: str, submiss
         raise
 
 
-async def update_email_status(submission_id: str, success: bool, error: Optional[str] = None):
-    """Update the email status in the database"""
-    await db.contact_submissions.update_one(
-        {"id": submission_id},
-        {"$set": {"email_sent": success, "email_error": error}}
-    )
-
-
-async def send_email_task(name: str, email: str, message: str, submission_id: str):
-    """Background task to send email and update status"""
+async def send_email_background(name: str, email: str, context: str, session_id: str):
+    """Background task to send email notification"""
     try:
-        send_contact_notification_email(name, email, message, submission_id)
-        await update_email_status(submission_id, True)
-        logging.info(f"Contact notification email sent successfully for submission {submission_id}")
+        send_contact_notification_email(name, email, context, session_id)
+        logging.info(f"Email notification sent for session {session_id}")
     except Exception as e:
-        error_msg = str(e)
-        await update_email_status(submission_id, False, error_msg)
-        logging.error(f"Failed to send contact notification email: {error_msg}")
+        logging.error(f"Failed to send email for session {session_id}: {str(e)}")
 
 
 # Routes
@@ -175,38 +228,177 @@ async def get_status_checks():
     return status_checks
 
 
-# Contact Form Routes
-@api_router.post("/contact", response_model=ContactFormResponse)
-async def submit_contact_form(input: ContactFormCreate, background_tasks: BackgroundTasks):
+# Ambient Chat Routes
+@api_router.post("/chat", response_model=ChatResponse)
+async def chat_with_xi(request: ChatRequest, background_tasks: BackgroundTasks):
     """
-    Handle contact form submission:
-    1. Store in MongoDB
-    2. Send email notification via SendGrid (background)
+    Main chat endpoint for XI Intelligence ambient interface
     """
     try:
-        # Create submission object
+        # Get or create conversation session
+        session = await db.conversations.find_one(
+            {"session_id": request.session_id},
+            {"_id": 0}
+        )
+        
+        if not session:
+            session = {
+                "id": str(uuid.uuid4()),
+                "session_id": request.session_id,
+                "messages": [],
+                "email_captured": None,
+                "name_captured": None,
+                "intent": None,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+            await db.conversations.insert_one(session)
+        
+        # Add user message to history
+        user_msg = {
+            "role": "user",
+            "content": request.message,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Initialize LLM chat
+        llm_key = os.environ.get('EMERGENT_LLM_KEY')
+        if not llm_key:
+            raise HTTPException(status_code=500, detail="LLM key not configured")
+        
+        chat = LlmChat(
+            api_key=llm_key,
+            session_id=request.session_id,
+            system_message=XI_SYSTEM_PROMPT
+        ).with_model("openai", "gpt-4o-mini")
+        
+        # Build conversation context for the LLM
+        # Include recent messages for context
+        context_messages = session.get("messages", [])[-6:]  # Last 6 messages for context
+        
+        # Create context string
+        conversation_context = ""
+        for msg in context_messages:
+            role = "User" if msg["role"] == "user" else "XI"
+            conversation_context += f"{role}: {msg['content']}\n"
+        
+        # Add current message
+        full_prompt = f"{conversation_context}User: {request.message}" if conversation_context else request.message
+        
+        # Send message to LLM
+        user_message = UserMessage(text=full_prompt)
+        response_text = await chat.send_message(user_message)
+        
+        # Parse action from response
+        action = None
+        clean_response = response_text
+        
+        if "[ACTION:CAPTURE_EMAIL]" in response_text:
+            action = "capture_email"
+            clean_response = response_text.replace("[ACTION:CAPTURE_EMAIL]", "").strip()
+        elif "[ACTION:BOOK_CALL]" in response_text:
+            action = "book_call"
+            clean_response = response_text.replace("[ACTION:BOOK_CALL]", "").strip()
+        
+        # Add assistant message to history
+        assistant_msg = {
+            "role": "assistant",
+            "content": clean_response,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Update session in database
+        await db.conversations.update_one(
+            {"session_id": request.session_id},
+            {
+                "$push": {"messages": {"$each": [user_msg, assistant_msg]}},
+                "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
+            }
+        )
+        
+        return ChatResponse(
+            response=clean_response,
+            session_id=request.session_id,
+            action=action
+        )
+        
+    except Exception as e:
+        logging.error(f"Chat error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to process message: {str(e)}")
+
+
+class EmailCaptureRequest(BaseModel):
+    session_id: str
+    email: EmailStr
+    name: Optional[str] = None
+
+@api_router.post("/chat/capture-email")
+async def capture_email(request: EmailCaptureRequest, background_tasks: BackgroundTasks):
+    """
+    Capture email from conversation and send notification
+    """
+    try:
+        # Get conversation session
+        session = await db.conversations.find_one(
+            {"session_id": request.session_id},
+            {"_id": 0}
+        )
+        
+        if not session:
+            raise HTTPException(status_code=404, detail="Session not found")
+        
+        # Update session with captured email
+        await db.conversations.update_one(
+            {"session_id": request.session_id},
+            {
+                "$set": {
+                    "email_captured": request.email,
+                    "name_captured": request.name,
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }
+            }
+        )
+        
+        # Build conversation context for email
+        messages = session.get("messages", [])
+        context = "\n".join([
+            f"{'User' if m['role'] == 'user' else 'XI'}: {m['content']}"
+            for m in messages[-10:]  # Last 10 messages
+        ])
+        
+        # Send email notification in background
+        background_tasks.add_task(
+            send_email_background,
+            request.name or "Website Visitor",
+            request.email,
+            context,
+            request.session_id
+        )
+        
+        return {"status": "success", "message": "Email captured successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Email capture error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to capture email")
+
+
+# Legacy Contact Form Routes (kept for backward compatibility)
+@api_router.post("/contact", response_model=ContactFormResponse)
+async def submit_contact_form(input: ContactFormCreate, background_tasks: BackgroundTasks):
+    """Legacy contact form endpoint"""
+    try:
         submission = ContactFormSubmission(
             name=input.name,
             email=input.email,
             message=input.message
         )
         
-        # Prepare document for MongoDB
         doc = submission.model_dump()
         doc['timestamp'] = doc['timestamp'].isoformat()
         
-        # Store in database
         await db.contact_submissions.insert_one(doc)
-        logging.info(f"Contact form submission stored: {submission.id}")
-        
-        # Send email in background
-        background_tasks.add_task(
-            send_email_task,
-            input.name,
-            input.email,
-            input.message,
-            submission.id
-        )
         
         return ContactFormResponse(
             status="success",
@@ -219,16 +411,11 @@ async def submit_contact_form(input: ContactFormCreate, background_tasks: Backgr
         raise HTTPException(status_code=500, detail="Failed to submit contact form")
 
 
-@api_router.get("/contact/submissions", response_model=List[ContactFormSubmission])
-async def get_contact_submissions():
-    """Get all contact form submissions (admin endpoint)"""
-    submissions = await db.contact_submissions.find({}, {"_id": 0}).to_list(1000)
-    
-    for sub in submissions:
-        if isinstance(sub['timestamp'], str):
-            sub['timestamp'] = datetime.fromisoformat(sub['timestamp'])
-    
-    return submissions
+@api_router.get("/conversations")
+async def get_conversations():
+    """Get all conversation sessions (admin endpoint)"""
+    conversations = await db.conversations.find({}, {"_id": 0}).to_list(1000)
+    return conversations
 
 
 # Include the router in the main app

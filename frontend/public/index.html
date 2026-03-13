@@ -847,6 +847,360 @@
     }
 
     /* ====================================================
+       AMBIENT AI INTERFACE
+    ==================================================== */
+    .ambient-container {
+      position: relative;
+      margin-top: 40px;
+    }
+    
+    .ambient-input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    
+    .ambient-input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--rule);
+      color: var(--white);
+      font-family: var(--ff-body);
+      font-size: 1.4rem;
+      font-weight: 300;
+      padding: 24px 60px 24px 0;
+      outline: none;
+      transition: border-color 0.4s ease;
+    }
+    
+    .ambient-input::placeholder {
+      color: var(--dimmer);
+      transition: color 0.3s ease;
+    }
+    
+    .ambient-input:focus {
+      border-color: var(--gold);
+    }
+    
+    .ambient-input:focus::placeholder {
+      color: rgba(255,255,255,0.3);
+    }
+    
+    .ambient-send-btn {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--dimmer);
+      cursor: pointer;
+      padding: 12px;
+      transition: color 0.3s ease, transform 0.3s ease;
+    }
+    
+    .ambient-send-btn:hover {
+      color: var(--gold);
+      transform: translateY(-50%) scale(1.1);
+    }
+    
+    .ambient-send-btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+    
+    .ambient-send-btn svg {
+      width: 28px;
+      height: 28px;
+    }
+    
+    .ambient-hint {
+      font-family: var(--ff-cond);
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--dimmer);
+      margin-top: 16px;
+    }
+    
+    /* Conversation Area */
+    .conversation-area {
+      margin-bottom: 32px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    
+    .conversation-area::-webkit-scrollbar {
+      width: 4px;
+    }
+    
+    .conversation-area::-webkit-scrollbar-thumb {
+      background: var(--rule);
+      border-radius: 2px;
+    }
+    
+    .chat-message {
+      margin-bottom: 24px;
+      animation: chatFadeIn 0.4s ease forwards;
+    }
+    
+    @keyframes chatFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .user-message {
+      font-size: 1.1rem;
+      font-weight: 300;
+      color: var(--dim);
+      padding: 16px 0;
+      border-bottom: 1px solid var(--rule);
+    }
+    
+    .user-message-label {
+      font-family: var(--ff-cond);
+      font-size: 0.6rem;
+      font-weight: 500;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--dimmer);
+      margin-right: 12px;
+    }
+    
+    .ai-response {
+      background: rgba(192,158,83,0.05);
+      border-left: 2px solid var(--gold);
+      padding: 24px 28px;
+      margin-top: 16px;
+    }
+    
+    .ai-label {
+      font-family: var(--ff-cond);
+      font-size: 0.6rem;
+      font-weight: 500;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .ai-label::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--gold);
+      border-radius: 50%;
+      animation: aiPulse 2s ease infinite;
+    }
+    
+    @keyframes aiPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    
+    .ai-text {
+      font-size: 1.05rem;
+      font-weight: 300;
+      line-height: 1.8;
+      color: var(--dim);
+    }
+    
+    .ai-actions {
+      display: flex;
+      gap: 16px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    
+    .ai-btn {
+      font-family: var(--ff-cond);
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      padding: 12px 24px;
+      border: 1px solid var(--rule);
+      background: transparent;
+      color: var(--white);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .ai-btn:hover {
+      background: var(--white);
+      color: var(--black);
+      border-color: var(--white);
+    }
+    
+    .ai-btn.primary {
+      background: var(--white);
+      color: var(--black);
+      border-color: var(--white);
+    }
+    
+    .ai-btn.primary:hover {
+      background: var(--gold);
+      border-color: var(--gold);
+    }
+    
+    /* Email Capture Modal */
+    .email-capture-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    
+    .email-capture-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .email-capture-box {
+      background: var(--surface);
+      border: 1px solid var(--rule);
+      padding: 48px;
+      max-width: 480px;
+      width: 90%;
+      transform: translateY(20px);
+      transition: transform 0.3s ease;
+    }
+    
+    .email-capture-overlay.active .email-capture-box {
+      transform: translateY(0);
+    }
+    
+    .email-capture-title {
+      font-family: var(--ff-cond);
+      font-size: 1.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+    }
+    
+    .email-capture-subtitle {
+      font-size: 0.95rem;
+      font-weight: 300;
+      color: var(--dimmer);
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+    
+    .email-capture-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .email-capture-input {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--rule);
+      color: var(--white);
+      font-family: var(--ff-body);
+      font-size: 1rem;
+      font-weight: 300;
+      padding: 16px 20px;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+    
+    .email-capture-input:focus {
+      border-color: var(--gold);
+    }
+    
+    .email-capture-input::placeholder {
+      color: rgba(255,255,255,0.5);
+    }
+    
+    .email-capture-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    
+    .email-capture-submit {
+      flex: 1;
+      padding: 16px 24px;
+      background: var(--white);
+      color: var(--black);
+      font-family: var(--ff-cond);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      border: none;
+      cursor: pointer;
+      transition: background 0.25s;
+    }
+    
+    .email-capture-submit:hover {
+      background: var(--gold);
+    }
+    
+    .email-capture-cancel {
+      padding: 16px 24px;
+      background: transparent;
+      color: var(--dimmer);
+      font-family: var(--ff-cond);
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      border: 1px solid var(--rule);
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+    
+    .email-capture-cancel:hover {
+      color: var(--white);
+      border-color: var(--white);
+    }
+    
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+      padding: 24px 28px;
+      background: rgba(192,158,83,0.05);
+      border-left: 2px solid var(--gold);
+      margin-top: 16px;
+    }
+    
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--gold);
+      border-radius: 50%;
+      animation: typingBounce 1.4s ease-in-out infinite;
+    }
+    
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    
+    @keyframes typingBounce {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+      30% { transform: translateY(-8px); opacity: 1; }
+    }
+
+    /* ====================================================
        FOOTER
     ==================================================== */
     footer {
@@ -1379,6 +1733,9 @@
       <h2 class="section-h2 reveal d1">
         Let's <em>connect.</em>
       </h2>
+      <h2 class="section-h2 reveal d1" style="font-size: 3.2rem; margin-top: -20px;">
+        Tell us <em>anything.</em>
+      </h2>
 
       <div class="contact-layout">
 
@@ -1399,26 +1756,64 @@
           </div>
         </div>
 
-        <form class="contact-form reveal d3" onsubmit="handleSubmit(event)" novalidate data-testid="contact-form">
-          <div class="fg">
-            <label class="fl" for="fname">Name</label>
-            <input class="fi" type="text" id="fname" name="name" placeholder="Your name" required autocomplete="name" data-testid="contact-name-input" />
+        <!-- Ambient AI Interface -->
+        <div class="reveal d3" data-testid="ambient-chat-container">
+          <div id="conversation-area" class="conversation-area" data-testid="conversation-area"></div>
+          
+          <div class="ambient-container">
+            <div class="ambient-input-wrapper">
+              <input 
+                type="text" 
+                class="ambient-input" 
+                id="ambient-input"
+                placeholder="What's on your mind?"
+                autocomplete="off"
+                data-testid="ambient-input"
+              />
+              <button class="ambient-send-btn" id="ambient-send-btn" data-testid="ambient-send-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                </svg>
+              </button>
+            </div>
+            <p class="ambient-hint">Press Enter to send • AI-powered by XI</p>
           </div>
-          <div class="fg">
-            <label class="fl" for="femail">Email</label>
-            <input class="fi" type="email" id="femail" name="email" placeholder="you@example.com" required autocomplete="email" data-testid="contact-email-input" />
-          </div>
-          <div class="fg">
-            <label class="fl" for="fmsg">Message</label>
-            <textarea class="fta" id="fmsg" name="message" placeholder="What's on your mind" required data-testid="contact-message-input"></textarea>
-          </div>
-          <button type="submit" class="fbtn" data-testid="contact-submit-btn">Send Message ↗</button>
-          <p class="ffb" id="ffb" data-testid="contact-feedback"></p>
-        </form>
+        </div>
 
       </div>
     </div>
   </section>
+
+  <!-- Email Capture Modal -->
+  <div class="email-capture-overlay" id="email-capture-overlay" data-testid="email-capture-modal">
+    <div class="email-capture-box">
+      <h3 class="email-capture-title">Let's Connect</h3>
+      <p class="email-capture-subtitle">Share your email and we'll be in touch shortly.</p>
+      <form class="email-capture-form" id="email-capture-form">
+        <input 
+          type="text" 
+          class="email-capture-input" 
+          id="capture-name" 
+          placeholder="Your name (optional)"
+          autocomplete="name"
+          data-testid="capture-name-input"
+        />
+        <input 
+          type="email" 
+          class="email-capture-input" 
+          id="capture-email" 
+          placeholder="Your email"
+          required
+          autocomplete="email"
+          data-testid="capture-email-input"
+        />
+        <div class="email-capture-actions">
+          <button type="submit" class="email-capture-submit" data-testid="capture-submit-btn">Send</button>
+          <button type="button" class="email-capture-cancel" id="email-capture-cancel" data-testid="capture-cancel-btn">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- ============================================================
        COOKIE CONSENT BANNER
@@ -1588,59 +1983,214 @@
       });
     });
 
-    // ── Contact form ──────────────────────────────────────────
-    async function handleSubmit(e) {
-      e.preventDefault();
-      const name  = document.getElementById('fname').value.trim();
-      const email = document.getElementById('femail').value.trim();
-      const msg   = document.getElementById('fmsg').value.trim();
-      const fb    = document.getElementById('ffb');
-      const btn   = e.target.querySelector('button[type="submit"]');
+    // ── Ambient AI Chat Interface ──────────────────────────────
+    const sessionId = 'xi-' + Math.random().toString(36).substring(2, 15);
+    const conversationArea = document.getElementById('conversation-area');
+    const ambientInput = document.getElementById('ambient-input');
+    const ambientSendBtn = document.getElementById('ambient-send-btn');
+    const emailCaptureOverlay = document.getElementById('email-capture-overlay');
+    const emailCaptureForm = document.getElementById('email-capture-form');
+    const emailCaptureCancel = document.getElementById('email-capture-cancel');
+    
+    let isProcessing = false;
+    
+    function generateMessageId() {
+      return 'msg-' + Math.random().toString(36).substring(2, 9);
+    }
+    
+    function addUserMessage(text) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'chat-message';
+      msgDiv.innerHTML = `
+        <div class="user-message">
+          <span class="user-message-label">You:</span>${escapeHtml(text)}
+        </div>
+      `;
+      conversationArea.appendChild(msgDiv);
+      scrollToBottom();
+    }
+    
+    function addTypingIndicator() {
+      const indicator = document.createElement('div');
+      indicator.className = 'chat-message';
+      indicator.id = 'typing-indicator';
+      indicator.innerHTML = `
+        <div class="typing-indicator">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      `;
+      conversationArea.appendChild(indicator);
+      scrollToBottom();
+    }
+    
+    function removeTypingIndicator() {
+      const indicator = document.getElementById('typing-indicator');
+      if (indicator) indicator.remove();
+    }
+    
+    function addAIResponse(text, action) {
+      removeTypingIndicator();
       
-      if (!name || !email || !msg) return;
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'chat-message';
       
-      // Show loading state
-      btn.disabled = true;
-      btn.textContent = 'Sending...';
-      fb.textContent = '';
-      fb.style.display = 'none';
-      fb.style.color = '';
+      let actionsHtml = '';
+      if (action === 'capture_email') {
+        actionsHtml = `
+          <div class="ai-actions">
+            <button class="ai-btn primary" onclick="showEmailCapture()">Share Email</button>
+            <button class="ai-btn" onclick="window.open('mailto:ping@xi.ventures', '_blank')">Email Directly</button>
+          </div>
+        `;
+      } else if (action === 'book_call') {
+        actionsHtml = `
+          <div class="ai-actions">
+            <button class="ai-btn primary" onclick="showEmailCapture()">Share Email</button>
+            <button class="ai-btn" onclick="window.open('mailto:ping@xi.ventures?subject=Meeting%20Request', '_blank')">Request Call</button>
+          </div>
+        `;
+      }
+      
+      msgDiv.innerHTML = `
+        <div class="ai-response">
+          <div class="ai-label">XI Intelligence</div>
+          <p class="ai-text">${escapeHtml(text)}</p>
+          ${actionsHtml}
+        </div>
+      `;
+      conversationArea.appendChild(msgDiv);
+      scrollToBottom();
+    }
+    
+    function addErrorMessage(text) {
+      removeTypingIndicator();
+      
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'chat-message';
+      msgDiv.innerHTML = `
+        <div class="ai-response" style="border-color: #ff6b6b;">
+          <div class="ai-label" style="color: #ff6b6b;">System</div>
+          <p class="ai-text">${escapeHtml(text)}</p>
+        </div>
+      `;
+      conversationArea.appendChild(msgDiv);
+      scrollToBottom();
+    }
+    
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+    
+    function scrollToBottom() {
+      conversationArea.scrollTop = conversationArea.scrollHeight;
+    }
+    
+    async function sendMessage() {
+      const message = ambientInput.value.trim();
+      if (!message || isProcessing) return;
+      
+      isProcessing = true;
+      ambientSendBtn.disabled = true;
+      ambientInput.value = '';
+      
+      addUserMessage(message);
+      addTypingIndicator();
       
       try {
-        const response = await fetch('/api/contact', {
+        const response = await fetch('/api/chat', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            name: name,
-            email: email,
-            message: msg
+            session_id: sessionId,
+            message: message
           })
         });
         
-        const data = await response.json();
-        
-        if (response.ok) {
-          fb.textContent = data.message || 'Thank you for your message. We\'ll be in touch soon.';
-          fb.style.color = 'var(--gold)';
-          fb.style.display = 'block';
-          e.target.reset();
-        } else {
-          fb.textContent = data.detail || 'Something went wrong. Please try again.';
-          fb.style.color = '#ff6b6b';
-          fb.style.display = 'block';
+        if (!response.ok) {
+          throw new Error('Failed to get response');
         }
+        
+        const data = await response.json();
+        addAIResponse(data.response, data.action);
+        
       } catch (error) {
-        console.error('Contact form error:', error);
-        fb.textContent = 'Network error. Please try again or email us directly at ping@xi.ventures';
-        fb.style.color = '#ff6b6b';
-        fb.style.display = 'block';
+        console.error('Chat error:', error);
+        addErrorMessage('Sorry, something went wrong. Please try again or email us directly at ping@xi.ventures');
       } finally {
-        btn.disabled = false;
-        btn.textContent = 'Send Message ↗';
+        isProcessing = false;
+        ambientSendBtn.disabled = false;
+        ambientInput.focus();
       }
     }
+    
+    function showEmailCapture() {
+      emailCaptureOverlay.classList.add('active');
+      document.getElementById('capture-email').focus();
+    }
+    
+    function hideEmailCapture() {
+      emailCaptureOverlay.classList.remove('active');
+    }
+    
+    async function submitEmailCapture(e) {
+      e.preventDefault();
+      
+      const name = document.getElementById('capture-name').value.trim();
+      const email = document.getElementById('capture-email').value.trim();
+      
+      if (!email) return;
+      
+      try {
+        const response = await fetch('/api/chat/capture-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            session_id: sessionId,
+            email: email,
+            name: name || null
+          })
+        });
+        
+        if (response.ok) {
+          hideEmailCapture();
+          addAIResponse("Thanks! We've got your details and will be in touch soon. Looking forward to connecting.", null);
+          emailCaptureForm.reset();
+        } else {
+          throw new Error('Failed to submit');
+        }
+      } catch (error) {
+        console.error('Email capture error:', error);
+        addErrorMessage('Could not save your email. Please try emailing us directly at ping@xi.ventures');
+        hideEmailCapture();
+      }
+    }
+    
+    // Event listeners
+    ambientSendBtn.addEventListener('click', sendMessage);
+    
+    ambientInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+    
+    emailCaptureForm.addEventListener('submit', submitEmailCapture);
+    emailCaptureCancel.addEventListener('click', hideEmailCapture);
+    
+    emailCaptureOverlay.addEventListener('click', function(e) {
+      if (e.target === emailCaptureOverlay) {
+        hideEmailCapture();
+      }
+    });
 
     // ── Cookie Consent ────────────────────────────────────────
     const COOKIE_KEY = 'xi_cookie_consent';
