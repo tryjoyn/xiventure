@@ -14,8 +14,8 @@ from datetime import datetime, timezone
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 
-# Emergent LLM imports
-from emergentintegrations.llm.chat import LlmChat, UserMessage
+# OpenAI imports
+from openai import AsyncOpenAI
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -272,33 +272,38 @@ async def chat_with_xi(request: ChatRequest, background_tasks: BackgroundTasks):
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
         
-        # Initialize LLM chat
-        llm_key = os.environ.get('EMERGENT_LLM_KEY')
-        if not llm_key:
-            raise HTTPException(status_code=500, detail="LLM key not configured")
+        # Initialize OpenAI client
+        openai_key = os.environ.get('OPENAI_API_KEY')
+        if not openai_key:
+            raise HTTPException(status_code=500, detail="OpenAI API key not configured")
         
-        chat = LlmChat(
-            api_key=llm_key,
-            session_id=request.session_id,
-            system_message=XI_SYSTEM_PROMPT
-        ).with_model("openai", "gpt-4o-mini")
+        client = AsyncOpenAI(api_key=openai_key)
         
         # Build conversation context for the LLM
         # Include recent messages for context
         context_messages = session.get("messages", [])[-6:]  # Last 6 messages for context
         
-        # Create context string
-        conversation_context = ""
+        # Build messages array for OpenAI
+        messages = [{"role": "system", "content": XI_SYSTEM_PROMPT}]
+        
         for msg in context_messages:
-            role = "User" if msg["role"] == "user" else "XI"
-            conversation_context += f"{role}: {msg['content']}\n"
+            messages.append({
+                "role": msg["role"],
+                "content": msg["content"]
+            })
         
-        # Add current message
-        full_prompt = f"{conversation_context}User: {request.message}" if conversation_context else request.message
+        # Add current user message
+        messages.append({"role": "user", "content": request.message})
         
-        # Send message to LLM
-        user_message = UserMessage(text=full_prompt)
-        response_text = await chat.send_message(user_message)
+        # Send message to OpenAI
+        completion = await client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=messages,
+            max_tokens=300,
+            temperature=0.7
+        )
+        
+        response_text = completion.choices[0].message.content
         
         # Parse action from response
         action = None
