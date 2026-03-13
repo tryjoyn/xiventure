@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://xi.ventures/sitemap.xml
