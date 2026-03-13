@@ -1514,6 +1514,20 @@
       .cookie-actions { width: 100%; }
     }
   </style>
+  <!-- Cloudflare Turnstile CAPTCHA (loads only if site key is configured) -->
+  <script>
+    (function() {
+      var siteKey = '%REACT_APP_TURNSTILE_SITE_KEY%';
+      if (siteKey && siteKey !== '' && !siteKey.includes('REACT_APP_')) {
+        var s = document.createElement('script');
+        s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+        s.async = true;
+        s.defer = true;
+        document.head.appendChild(s);
+        window.__TURNSTILE_SITE_KEY = siteKey;
+      }
+    })();
+  </script>
 </head>
 <body>
 
@@ -1759,12 +1773,15 @@
           
           <div class="ambient-container">
             <div class="ambient-input-wrapper">
+              <!-- Honeypot field — invisible to humans, bots auto-fill it -->
+              <input type="text" name="website_url" id="hp-field" style="position:absolute;left:-9999px;top:-9999px;opacity:0;height:0;width:0;z-index:-1;" tabindex="-1" autocomplete="off" aria-hidden="true" />
               <input 
                 type="text" 
                 class="ambient-input" 
                 id="ambient-input"
                 placeholder="What's on your mind?"
                 autocomplete="off"
+                maxlength="500"
                 data-testid="ambient-input"
               />
               <button class="ambient-send-btn" id="ambient-send-btn" data-testid="ambient-send-btn">
@@ -1773,7 +1790,8 @@
                 </svg>
               </button>
             </div>
-            <p class="ambient-hint">Press Enter to send • AI-powered by XI</p>
+            <div id="turnstile-container" style="margin-top:8px;min-height:0;"></div>
+            <p class="ambient-hint" id="ambient-hint" data-testid="ambient-hint">Press Enter to send • AI-powered by XI • <span id="msg-counter" data-testid="msg-counter">5 messages remaining</span></p>
           </div>
         </div>
 
@@ -1990,8 +2008,39 @@
     const emailCaptureOverlay = document.getElementById('email-capture-overlay');
     const emailCaptureForm = document.getElementById('email-capture-form');
     const emailCaptureCancel = document.getElementById('email-capture-cancel');
+    const msgCounter = document.getElementById('msg-counter');
+    const hpField = document.getElementById('hp-field');
+    
+    // Turnstile CAPTCHA
+    let turnstileToken = null;
+    if (window.__TURNSTILE_SITE_KEY && window.turnstile) {
+      window.turnstile.render('#turnstile-container', {
+        sitekey: window.__TURNSTILE_SITE_KEY,
+        theme: 'dark',
+        size: 'compact',
+        callback: function(token) { turnstileToken = token; },
+        'expired-callback': function() { turnstileToken = null; },
+      });
+    }
     
     let isProcessing = false;
+    let messagesRemaining = 5;
+    let chatDisabled = false;
+
+    function updateMsgCounter(remaining) {
+      messagesRemaining = remaining;
+      if (remaining <= 0) {
+        msgCounter.textContent = 'No messages remaining';
+        msgCounter.style.color = '#ff6b6b';
+        chatDisabled = true;
+        ambientInput.disabled = true;
+        ambientInput.placeholder = 'Chat limit reached — email us at ping@xi.ventures';
+        ambientSendBtn.disabled = true;
+      } else {
+        msgCounter.textContent = remaining + ' message' + (remaining !== 1 ? 's' : '') + ' remaining';
+        msgCounter.style.color = remaining <= 2 ? '#c09e53' : '';
+      }
+    }
     
     function generateMessageId() {
       return 'msg-' + Math.random().toString(36).substring(2, 9);
@@ -2083,7 +2132,12 @@
     
     async function sendMessage() {
       const message = ambientInput.value.trim();
-      if (!message || isProcessing) return;
+      if (!message || isProcessing || chatDisabled) return;
+      
+      if (message.length > 500) {
+        addErrorMessage('Message is too long. Please keep it under 500 characters.');
+        return;
+      }
       
       isProcessing = true;
       ambientSendBtn.disabled = true;
@@ -2100,9 +2154,22 @@
           },
           body: JSON.stringify({
             session_id: sessionId,
-            message: message
+            message: message,
+            hp_field: hpField ? hpField.value : null,
+            captcha_token: turnstileToken || null
           })
         });
+        
+        if (response.status === 429) {
+          const err = await response.json();
+          addErrorMessage(err.detail || 'Please wait a moment before sending another message.');
+          return;
+        }
+        
+        if (response.status === 403) {
+          addErrorMessage('Verification failed. Please refresh and try again.');
+          return;
+        }
         
         if (!response.ok) {
           throw new Error('Failed to get response');
@@ -2111,13 +2178,20 @@
         const data = await response.json();
         addAIResponse(data.response, data.action);
         
+        // Update message counter
+        if (data.remaining !== undefined && data.remaining !== null) {
+          updateMsgCounter(data.remaining);
+        }
+        
       } catch (error) {
         console.error('Chat error:', error);
         addErrorMessage('Sorry, something went wrong. Please try again or email us directly at ping@xi.ventures');
       } finally {
         isProcessing = false;
-        ambientSendBtn.disabled = false;
-        ambientInput.focus();
+        if (!chatDisabled) {
+          ambientSendBtn.disabled = false;
+          ambientInput.focus();
+        }
       }
     }
     
