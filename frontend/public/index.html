@@ -2037,18 +2037,11 @@
       msgDiv.className = 'chat-message';
       
       let actionsHtml = '';
-      if (action === 'capture_email') {
+      if (action === 'capture_email' || action === 'book_call') {
         actionsHtml = `
           <div class="ai-actions">
             <button class="ai-btn primary" onclick="showEmailCapture()">Share Email</button>
-            <button class="ai-btn" onclick="window.open('mailto:ping@xi.ventures', '_blank')">Email Directly</button>
-          </div>
-        `;
-      } else if (action === 'book_call') {
-        actionsHtml = `
-          <div class="ai-actions">
-            <button class="ai-btn primary" onclick="showEmailCapture()">Share Email</button>
-            <button class="ai-btn" onclick="window.open('mailto:ping@xi.ventures?subject=Meeting%20Request', '_blank')">Request Call</button>
+            <button class="ai-btn primary" onclick="window.open('mailto:ping@xi.ventures?subject=Let%27s%20Connect%20-%20Call%20Request', '_blank')">Book a Call</button>
           </div>
         `;
       }
