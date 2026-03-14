@@ -2356,7 +2356,67 @@
 
   <!-- Constellation View Script -->
   <script>
-    const VENTURES = [{id:'ynot-now',name:'YNOT.NOW',wordmark:'Y?',status:'Active · First Venture',color:'#c09e53',description:'Eight specialist agents continuously explore emerging technology across P&C, Life & Annuities, Reinsurance, and Horizontal Technologies. Every finding is scored, sourced, and shared freely.',description2:'Intelligence as a shared resource, compounding over time for everyone. No subscriptions. No vendor relationships. No hidden agenda.',model:'Intelligence Infrastructure',stage:'Active',category:'AI · Insurance Innovation',link:'https://ynot.now',linkText:'Visit YNOT.NOW →'},{id:'venture-ii',name:'Venture II',wordmark:'XI',status:'Active · Second Venture',color:'#d4b472',description:'An AI workforce platform where domain experts create, deploy, and earn from AI workers trained on their knowledge. Built for the professionals, operators, and creators defining the next era of work.',description2:'The platform compounds with every deployment. Early access is by invitation.',model:'Intelligence Infrastructure',stage:'Building',category:'AI · Future of Work',link:null,linkText:null}];class ConstellationView{constructor(){this.canvas=document.getElementById('constellation-canvas');this.ctx=this.canvas.getContext('2d');this.overlay=document.getElementById('constellation-overlay');this.container=document.getElementById('constellation-container');this.stars=[];this.connections=[];this.init();this.setupEventListeners();this.animate();}init(){this.resizeCanvas();this.createStars();this.createConnections();window.addEventListener('resize',()=>this.resizeCanvas());}resizeCanvas(){this.canvas.width=this.container.clientWidth;this.canvas.height=this.container.clientHeight;this.createStars();}createStars(){this.stars=[];const centerX=this.canvas.width/2;const centerY=this.canvas.height/2;const radius=Math.min(this.canvas.width,this.canvas.height)*0.25;VENTURES.forEach((venture,index)=>{const angle=(index/VENTURES.length)*Math.PI*2-Math.PI/2;const x=centerX+Math.cos(angle)*radius;const y=centerY+Math.sin(angle)*radius;const star={x,y,radius:12,color:venture.color,venture,originalX:x,originalY:y,pulsePhase:Math.random()*Math.PI*2};this.stars.push(star);this.createStarElement(star);});}createStarElement(star){const element=document.createElement('div');element.className='venture-star';element.style.left=star.x+'px';element.style.top=star.y+'px';element.style.width=star.radius*2+'px';element.style.height=star.radius*2+'px';element.innerHTML=`<svg width="${star.radius*2}" height="${star.radius*2}" viewBox="0 0 24 24" style="filter: drop-shadow(0 0 8px ${star.color});"><circle cx="12" cy="12" r="8" fill="${star.color}" opacity="0.8"/><circle cx="12" cy="12" r="6" fill="${star.color}" opacity="0.4"/></svg><div class="star-tooltip">${star.venture.name}</div>`;element.addEventListener('click',()=>this.openPortal(star.venture));this.overlay.appendChild(element);}createConnections(){for(let i=0;i<this.stars.length;i++){for(let j=i+1;j<this.stars.length;j++){const dx=this.stars[j].x-this.stars[i].x;const dy=this.stars[j].y-this.stars[i].y;const distance=Math.sqrt(dx*dx+dy*dy);if(distance<400){this.connections.push({star1:this.stars[i],star2:this.stars[j],opacity:0.1+(1-distance/400)*0.3});}}}}animate(){this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);this.connections.forEach(conn=>{this.ctx.strokeStyle=`rgba(192, 158, 83, ${conn.opacity})`;this.ctx.lineWidth=1;this.ctx.beginPath();this.ctx.moveTo(conn.star1.x,conn.star1.y);this.ctx.lineTo(conn.star2.x,conn.star2.y);this.ctx.stroke();});this.stars.forEach(star=>{star.pulsePhase+=0.02;const pulse=Math.sin(star.pulsePhase)*0.3+1;this.ctx.fillStyle=star.color;this.ctx.globalAlpha=0.6+Math.sin(star.pulsePhase)*0.2;this.ctx.beginPath();this.ctx.arc(star.x,star.y,star.radius*pulse,0,Math.PI*2);this.ctx.fill();this.ctx.globalAlpha=0.3;this.ctx.beginPath();this.ctx.arc(star.x,star.y,star.radius*pulse*1.5,0,Math.PI*2);this.ctx.stroke();});this.ctx.globalAlpha=1;requestAnimationFrame(()=>this.animate());}setupEventListeners(){document.getElementById('portal-close').addEventListener('click',()=>this.closePortal());}openPortal(venture){const portalView=document.getElementById('portal-view');const portalContent=document.getElementById('portal-content');portalContent.innerHTML=`<div class="portal-venture-card"><div class="portal-venture-header"><div class="portal-venture-visual"><div class="portal-venture-wordmark">${venture.wordmark}</div><div class="portal-venture-name">${venture.name}</div><div class="portal-venture-status">${venture.status}</div></div><div class="portal-venture-details"><div><p class="portal-venture-description">${venture.description}</p><p class="portal-venture-description" style="margin-top: 16px;">${venture.description2}</p></div><div class="portal-venture-meta"><div class="portal-meta-item"><span class="portal-meta-label">Model</span><span class="portal-meta-value">${venture.model}</span></div><div class="portal-meta-item"><span class="portal-meta-label">Stage</span><span class="portal-meta-value">${venture.stage}</span></div><div class="portal-meta-item"><span class="portal-meta-label">Category</span><span class="portal-meta-value">${venture.category}</span></div></div>${venture.link?`<a href="${venture.link}" target="_blank" rel="noopener noreferrer" class="portal-venture-cta">${venture.linkText}</a>`:''}</div></div></div>`;portalView.classList.remove('hidden');document.body.style.overflow='hidden';}closePortal(){const portalView=document.getElementById('portal-view');portalView.classList.add('hidden');document.body.style.overflow='';}}document.addEventListener('DOMContentLoaded',()=>{new ConstellationView();});
+    const VENTURES = [{id:'ynot-now',name:'YNOT.NOW',wordmark:'Y?',status:'Active · First Venture',color:'#c09e53',description:'Eight specialist agents continuously explore emerging technology across P&C, Life & Annuities, Reinsurance, and Horizontal Technologies. Every finding is scored, sourced, and shared freely.',description2:'Intelligence as a shared resource, compounding over time for everyone. No subscriptions. No vendor relationships. No hidden agenda.',model:'Intelligence Infrastructure',stage:'Active',category:'AI · Insurance Innovation',link:'https://ynot.now',linkText:'Visit YNOT.NOW →'},{id:'venture-ii',name:'Venture II',wordmark:'XI',status:'Active · Second Venture',color:'#d4b472',description:'An AI workforce platform where domain experts create, deploy, and earn from AI workers trained on their knowledge. Built for the professionals, operators, and creators defining the next era of work.',description2:'The platform compounds with every deployment. Early access is by invitation.',model:'Intelligence Infrastructure',stage:'Building',category:'AI · Future of Work',link:null,linkText:null}];
+    class ConstellationView{
+      constructor(){
+        this.canvas=document.getElementById('constellation-canvas');
+        this.ctx=this.canvas.getContext('2d');
+        this.overlay=document.getElementById('constellation-overlay');
+        this.container=document.getElementById('constellation-container');
+        this.stars=[];
+        this.connections=[];
+        this.init();
+        this.setupEventListeners();
+        this.animate();
+      }
+      init(){this.resizeCanvas();this.createStars();this.createConnections();window.addEventListener('resize',()=>this.resizeCanvas());}
+      resizeCanvas(){this.canvas.width=this.container.clientWidth;this.canvas.height=this.container.clientHeight;this.createStars();}
+      createStars(){
+        this.stars=[];
+        const centerX=this.canvas.width/2;
+        const centerY=this.canvas.height/2;
+        const radius=Math.min(this.canvas.width,this.canvas.height)*0.25;
+        VENTURES.forEach((venture,index)=>{
+          const angle=(index/VENTURES.length)*Math.PI*2-Math.PI/2;
+          const x=centerX+Math.cos(angle)*radius;
+          const y=centerY+Math.sin(angle)*radius;
+          const star={x,y,radius:12,color:venture.color,venture,originalX:x,originalY:y,pulsePhase:Math.random()*Math.PI*2};
+          this.stars.push(star);
+          this.createStarElement(star);
+        });
+      }
+      createStarElement(star){
+        const element=document.createElement('div');
+        element.className='venture-star';
+        element.style.left=(star.x-star.radius)+'px';
+        element.style.top=(star.y-star.radius)+'px';
+        element.style.width=(star.radius*2.5)+'px';
+        element.style.height=(star.radius*2.5)+'px';
+        element.style.pointerEvents='auto';
+        element.innerHTML=`<svg width="${star.radius*2}" height="${star.radius*2}" viewBox="0 0 24 24" style="filter: drop-shadow(0 0 8px ${star.color});"><circle cx="12" cy="12" r="8" fill="${star.color}" opacity="0.8"/><circle cx="12" cy="12" r="6" fill="${star.color}" opacity="0.4"/></svg><div class="star-tooltip">${star.venture.name}</div>`;
+        element.addEventListener('click',(e)=>{e.stopPropagation();this.openPortal(star.venture);});
+        this.overlay.appendChild(element);
+      }
+      createConnections(){for(let i=0;i<this.stars.length;i++){for(let j=i+1;j<this.stars.length;j++){const dx=this.stars[j].x-this.stars[i].x;const dy=this.stars[j].y-this.stars[i].y;const distance=Math.sqrt(dx*dx+dy*dy);if(distance<400){this.connections.push({star1:this.stars[i],star2:this.stars[j],opacity:0.1+(1-distance/400)*0.3});}}}}
+      animate(){this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);this.connections.forEach(conn=>{this.ctx.strokeStyle=`rgba(192, 158, 83, ${conn.opacity})`;this.ctx.lineWidth=1;this.ctx.beginPath();this.ctx.moveTo(conn.star1.x,conn.star1.y);this.ctx.lineTo(conn.star2.x,conn.star2.y);this.ctx.stroke();});this.stars.forEach(star=>{star.pulsePhase+=0.02;const pulse=Math.sin(star.pulsePhase)*0.3+1;this.ctx.fillStyle=star.color;this.ctx.globalAlpha=0.6+Math.sin(star.pulsePhase)*0.2;this.ctx.beginPath();this.ctx.arc(star.x,star.y,star.radius*pulse,0,Math.PI*2);this.ctx.fill();this.ctx.globalAlpha=0.3;this.ctx.beginPath();this.ctx.arc(star.x,star.y,star.radius*pulse*1.5,0,Math.PI*2);this.ctx.stroke();});this.ctx.globalAlpha=1;requestAnimationFrame(()=>this.animate());}
+      setupEventListeners(){
+        document.getElementById('portal-close').addEventListener('click',()=>this.closePortal());
+        this.canvas.addEventListener('click',(e)=>{
+          const rect=this.canvas.getBoundingClientRect();
+          const x=e.clientX-rect.left;
+          const y=e.clientY-rect.top;
+          for(let star of this.stars){
+            const dx=x-star.x;
+            const dy=y-star.y;
+            const distance=Math.sqrt(dx*dx+dy*dy);
+            if(distance<25){this.openPortal(star.venture);break;}
+          }
+        });
+      }
+      openPortal(venture){const portalView=document.getElementById('portal-view');const portalContent=document.getElementById('portal-content');portalContent.innerHTML=`<div class="portal-venture-card"><div class="portal-venture-header"><div class="portal-venture-visual"><div class="portal-venture-wordmark">${venture.wordmark}</div><div class="portal-venture-name">${venture.name}</div><div class="portal-venture-status">${venture.status}</div></div><div class="portal-venture-details"><div><p class="portal-venture-description">${venture.description}</p><p class="portal-venture-description" style="margin-top: 16px;">${venture.description2}</p></div><div class="portal-venture-meta"><div class="portal-meta-item"><span class="portal-meta-label">Model</span><span class="portal-meta-value">${venture.model}</span></div><div class="portal-meta-item"><span class="portal-meta-label">Stage</span><span class="portal-meta-value">${venture.stage}</span></div><div class="portal-meta-item"><span class="portal-meta-label">Category</span><span class="portal-meta-value">${venture.category}</span></div></div>${venture.link?`<a href="${venture.link}" target="_blank" rel="noopener noreferrer" class="portal-venture-cta">${venture.linkText}</a>`:''}</div></div></div>`;portalView.classList.remove('hidden');document.body.style.overflow='hidden';}
+      closePortal(){const portalView=document.getElementById('portal-view');portalView.classList.add('hidden');document.body.style.overflow='';}
+    }
+    document.addEventListener('DOMContentLoaded',()=>{new ConstellationView();});
   </script>
 
   <!-- React root for CRA compatibility -->
