@@ -1546,6 +1546,16 @@
     .portal-venture-cta { display: inline-flex; align-items: center; gap: 12px; color: var(--gold); text-decoration: none; font-weight: 500; transition: all 0.3s ease; margin-top: 20px; }
     .portal-venture-cta:hover { color: var(--gold-light); gap: 16px; }
     @media (max-width: 768px) { .constellation-wrapper { height: 400px; } .portal-venture-header { grid-template-columns: 1fr; gap: 40px; } .portal-venture-wordmark { font-size: 3.5rem; } .portal-venture-name { font-size: 1.8rem; } .portal-venture-visual { min-height: 300px; } .portal-content { padding: 24px 0; } .portal-close { padding: 16px 0; } }
+
+    /* ====================================================
+       ORBITING TEXT ANIMATION
+    ==================================================== */
+    .star-orbit { position: absolute; width: 100px; height: 100px; }
+    .orbit-text { position: absolute; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.05em; white-space: nowrap; }
+    .orbit-status { position: absolute; font-size: 0.65rem; color: var(--dimmer); letter-spacing: 0.05em; text-transform: uppercase; }
+    @keyframes orbit { from { transform: rotate(0deg) translateX(60px) rotate(0deg); } to { transform: rotate(360deg) translateX(60px) rotate(-360deg); } }
+    .orbit-text { animation: orbit 8s linear infinite; }
+    .orbit-status { animation: orbit 8s linear infinite; }
   </style>
   <!-- Cloudflare Turnstile CAPTCHA (loads only if site key is configured) -->
   <script>
@@ -2365,12 +2375,13 @@
         this.container=document.getElementById('constellation-container');
         this.stars=[];
         this.connections=[];
+        this.orbitElements=[];
         this.init();
         this.setupEventListeners();
         this.animate();
       }
-      init(){this.resizeCanvas();this.createStars();this.createConnections();window.addEventListener('resize',()=>this.resizeCanvas());}
-      resizeCanvas(){this.canvas.width=this.container.clientWidth;this.canvas.height=this.container.clientHeight;this.createStars();}
+      init(){this.resizeCanvas();this.createStars();this.createConnections();this.createOrbitingText();window.addEventListener('resize',()=>this.resizeCanvas());}
+      resizeCanvas(){this.canvas.width=this.container.clientWidth;this.canvas.height=this.container.clientHeight;this.createStars();this.createOrbitingText();}
       createStars(){
         this.stars=[];
         const centerX=this.canvas.width/2;
@@ -2393,9 +2404,33 @@
         element.style.width=(star.radius*2.5)+'px';
         element.style.height=(star.radius*2.5)+'px';
         element.style.pointerEvents='auto';
-        element.innerHTML=`<svg width="${star.radius*2}" height="${star.radius*2}" viewBox="0 0 24 24" style="filter: drop-shadow(0 0 8px ${star.color});"><circle cx="12" cy="12" r="8" fill="${star.color}" opacity="0.8"/><circle cx="12" cy="12" r="6" fill="${star.color}" opacity="0.4"/></svg><div class="star-tooltip">${star.venture.name}</div>`;
+        element.innerHTML=`<svg width="${star.radius*2}" height="${star.radius*2}" viewBox="0 0 24 24" style="filter: drop-shadow(0 0 8px ${star.color});"><circle cx="12" cy="12" r="8" fill="${star.color}" opacity="0.8"/><circle cx="12" cy="12" r="6" fill="${star.color}" opacity="0.4"/></svg>`;
         element.addEventListener('click',(e)=>{e.stopPropagation();this.openPortal(star.venture);});
         this.overlay.appendChild(element);
+      }
+      createOrbitingText(){
+        this.orbitElements.forEach(el=>el.remove());
+        this.orbitElements=[];
+        this.stars.forEach(star=>{
+          const orbitContainer=document.createElement('div');
+          orbitContainer.className='star-orbit';
+          orbitContainer.style.left=(star.x-50)+'px';
+          orbitContainer.style.top=(star.y-50)+'px';
+          const nameEl=document.createElement('div');
+          nameEl.className='orbit-text';
+          nameEl.style.color=star.color;
+          nameEl.textContent=star.venture.name;
+          const statusEl=document.createElement('div');
+          statusEl.className='orbit-status';
+          statusEl.style.top='35px';
+          statusEl.textContent=star.venture.stage;
+          orbitContainer.appendChild(nameEl);
+          orbitContainer.appendChild(statusEl);
+          orbitContainer.addEventListener('click',(e)=>{e.stopPropagation();this.openPortal(star.venture);});
+          orbitContainer.style.cursor='pointer';
+          this.overlay.appendChild(orbitContainer);
+          this.orbitElements.push(orbitContainer);
+        });
       }
       createConnections(){for(let i=0;i<this.stars.length;i++){for(let j=i+1;j<this.stars.length;j++){const dx=this.stars[j].x-this.stars[i].x;const dy=this.stars[j].y-this.stars[i].y;const distance=Math.sqrt(dx*dx+dy*dy);if(distance<400){this.connections.push({star1:this.stars[i],star2:this.stars[j],opacity:0.1+(1-distance/400)*0.3});}}}}
       animate(){this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);this.connections.forEach(conn=>{this.ctx.strokeStyle=`rgba(192, 158, 83, ${conn.opacity})`;this.ctx.lineWidth=1;this.ctx.beginPath();this.ctx.moveTo(conn.star1.x,conn.star1.y);this.ctx.lineTo(conn.star2.x,conn.star2.y);this.ctx.stroke();});this.stars.forEach(star=>{star.pulsePhase+=0.02;const pulse=Math.sin(star.pulsePhase)*0.3+1;this.ctx.fillStyle=star.color;this.ctx.globalAlpha=0.6+Math.sin(star.pulsePhase)*0.2;this.ctx.beginPath();this.ctx.arc(star.x,star.y,star.radius*pulse,0,Math.PI*2);this.ctx.fill();this.ctx.globalAlpha=0.3;this.ctx.beginPath();this.ctx.arc(star.x,star.y,star.radius*pulse*1.5,0,Math.PI*2);this.ctx.stroke();});this.ctx.globalAlpha=1;requestAnimationFrame(()=>this.animate());}
