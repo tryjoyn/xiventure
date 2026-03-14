@@ -1514,44 +1514,7 @@
       .cookie-actions { width: 100%; }
     }
 
-    /* ====================================================
-       CONSTELLATION VIEW STYLES
-    ==================================================== */
-    .constellation-wrapper { position: relative; width: 100%; height: 600px; background: radial-gradient(ellipse at center, rgba(192,158,83,0.05) 0%, rgba(0,0,0,0.3) 100%); border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; cursor: crosshair; margin: 48px 0; }
-    #constellation-canvas { display: block; width: 100%; height: 100%; }
-    .constellation-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-    .venture-star { position: absolute; cursor: pointer; transition: all 0.3s ease; z-index: 10; }
-    .venture-star:hover { transform: scale(1.3); filter: brightness(1.5); }
-    .star-tooltip { position: absolute; background: rgba(0, 0, 0, 0.95); border: 1px solid var(--rule-gold); border-radius: 4px; padding: 12px 16px; font-size: 0.85rem; color: var(--white); pointer-events: none; z-index: 100; white-space: nowrap; opacity: 0; transition: opacity 0.3s ease; }
-    .venture-star:hover .star-tooltip { opacity: 1; }
-    .portal-view { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(0,0,0,0.98) 0%, rgba(13,13,13,0.98) 100%); z-index: 1000; display: flex; flex-direction: column; overflow-y: auto; animation: portalFadeIn 0.6s ease; }
-    .portal-view.hidden { display: none; }
-    @keyframes portalFadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-    .portal-close { position: sticky; top: 0; left: 0; align-self: flex-start; background: transparent; border: none; color: var(--gold); font-family: var(--ff-body); font-size: 0.9rem; padding: 24px 0; cursor: pointer; transition: color 0.3s ease; z-index: 1001; }
-    .portal-close:hover { color: var(--gold-light); }
-    .portal-content { flex: 1; padding: 40px 0; animation: contentSlideIn 0.8s ease 0.2s both; }
-    @keyframes contentSlideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    .portal-venture-card { margin-bottom: 60px; }
-    .portal-venture-header { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; margin-bottom: 60px; align-items: start; }
-    .portal-venture-visual { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; background: rgba(192,158,83,0.05); border: 1px solid var(--rule-gold); border-radius: 8px; min-height: 400px; }
-    .portal-venture-wordmark { font-size: 5rem; font-weight: 700; color: var(--gold); margin-bottom: 20px; letter-spacing: 0.1em; }
-    .portal-venture-name { font-size: 2.5rem; font-weight: 600; color: var(--white); margin-bottom: 8px; }
-    .portal-venture-status { font-size: 0.85rem; color: var(--dimmer); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 40px; }
-    .portal-venture-details { display: flex; flex-direction: column; gap: 32px; }
-    .portal-venture-description { font-size: 1.1rem; line-height: 1.7; color: var(--dim); }
-    .portal-venture-meta { display: flex; flex-direction: column; gap: 16px; }
-    .portal-meta-item { display: flex; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid var(--rule); }
-    .portal-meta-label { font-size: 0.85rem; color: var(--dimmer); letter-spacing: 0.1em; text-transform: uppercase; }
-    .portal-meta-value { font-size: 0.95rem; color: var(--white); }
-    .portal-venture-cta { display: inline-flex; align-items: center; gap: 12px; color: var(--gold); text-decoration: none; font-weight: 500; transition: all 0.3s ease; margin-top: 20px; }
-    .portal-venture-cta:hover { color: var(--gold-light); gap: 16px; }
-    @media (max-width: 768px) { .constellation-wrapper { height: 400px; } .portal-venture-header { grid-template-columns: 1fr; gap: 40px; } .portal-venture-wordmark { font-size: 3.5rem; } .portal-venture-name { font-size: 1.8rem; } .portal-venture-visual { min-height: 300px; } .portal-content { padding: 24px 0; } .portal-close { padding: 16px 0; } }
 
-    /* ====================================================
-       OPTION 1: LABELED STARS WITH BADGES
-    ==================================================== */
-    .venture-label { position: absolute; font-size: 0.9rem; font-weight: 600; letter-spacing: 0.05em; white-space: nowrap; }
-    .venture-badge { position: absolute; font-size: 0.65rem; border: 1px solid; border-radius: 12px; padding: 4px 8px; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 500; }
 
     /* ====================================================
        SCROLL TO TOP BUTTON
@@ -1594,6 +1557,9 @@
       letter-spacing: 0.05em;
       text-transform: uppercase;
       line-height: 1;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
     
     @media (max-width: 768px) {
@@ -1788,17 +1754,79 @@
         <em>one venture at a time.</em>
       </h2>
 
-      <!-- Constellation View -->
-      <div id="constellation-container" class="constellation-wrapper reveal d2">
-        <canvas id="constellation-canvas"></canvas>
-        <div id="constellation-overlay" class="constellation-overlay"></div>
+      <!-- VENTURE 1: YNOT.NOW -->
+      <div class="venture-card reveal d2">
+        <div class="vc-body">
+          <div>
+            <div class="vc-status">Active · First Venture</div>
+            <div class="vc-name">YNOT.NOW</div>
+            <p class="vc-desc">
+              Eight specialist agents continuously explore emerging technology across P&C, Life & Annuities, Reinsurance, and Horizontal Technologies. Every finding is scored, sourced, and shared freely.
+            </p>
+            <p class="vc-desc" style="margin-top:16px;">
+              Intelligence as a shared resource, compounding over time for everyone. No subscriptions. No vendor relationships. No hidden agenda.
+            </p>
+          </div>
+          <div>
+            <div class="vc-meta">
+              <div class="mi">
+                <span class="mk">Model</span>
+                <span class="mv">Intelligence Infrastructure</span>
+              </div>
+              <div class="mi">
+                <span class="mk">Stage</span>
+                <span class="mv">Active</span>
+              </div>
+              <div class="mi">
+                <span class="mk">Category</span>
+                <span class="mv">AI · Insurance Innovation</span>
+              </div>
+            </div>
+            <div style="margin-top: 24px;">
+              <a href="https://ynot.now" target="_blank" rel="noopener noreferrer" class="vc-link">Visit YNOT.NOW →</a>
+            </div>
+          </div>
+        </div>
+        <div class="vc-visual">
+          <div class="vc-wordmark">Y?</div>
+          <div class="vc-gold-rule"></div>
+          <div class="vc-tagline">YNOT.NOW</div>
+        </div>
       </div>
-
-      <!-- Portal View (Hidden by default) -->
-      <div id="portal-view" class="portal-view hidden">
-        <div class="section-wrap">
-          <button id="portal-close" class="portal-close">← Back to Ventures</button>
-          <div id="portal-content" class="portal-content"></div>
+      <!-- VENTURE 2: VENTURE II -->
+      <div class="venture-card reveal d2" style="margin-top: 48px;">
+        <div class="vc-body">
+          <div>
+            <div class="vc-status">Active · Second Venture</div>
+            <div class="vc-name">Venture II</div>
+            <p class="vc-desc">
+              An AI workforce platform where domain experts create, deploy, and earn from AI workers trained on their knowledge. Built for the professionals, operators, and creators defining the next era of work.
+            </p>
+            <p class="vc-desc" style="margin-top:16px;">
+              The platform compounds with every deployment. Early access is by invitation.
+            </p>
+          </div>
+          <div>
+            <div class="vc-meta">
+              <div class="mi">
+                <span class="mk">Model</span>
+                <span class="mv">Intelligence Infrastructure</span>
+              </div>
+              <div class="mi">
+                <span class="mk">Stage</span>
+                <span class="mv">Building</span>
+              </div>
+              <div class="mi">
+                <span class="mk">Category</span>
+                <span class="mv">AI · Future of Work</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="vc-visual">
+          <div class="vc-wordmark">XI</div>
+          <div class="vc-gold-rule"></div>
+          <div class="vc-tagline">Venture II</div>
         </div>
       </div>
     </div>
@@ -2415,25 +2443,7 @@
     });
   </script>
 
-  <!-- Constellation View Script - Option 1: Labeled Stars with Badges -->
-  <script>
-    const VENTURES = [{id:'ynot-now',name:'YNOT.NOW',wordmark:'Y?',status:'Active · First Venture',color:'#c09e53',description:'Eight specialist agents continuously explore emerging technology across P&C, Life & Annuities, Reinsurance, and Horizontal Technologies. Every finding is scored, sourced, and shared freely.',description2:'Intelligence as a shared resource, compounding over time for everyone. No subscriptions. No vendor relationships. No hidden agenda.',model:'Intelligence Infrastructure',stage:'Active',category:'AI · Insurance Innovation',link:'https://ynot.now',linkText:'Visit YNOT.NOW →'},{id:'venture-ii',name:'Venture II',wordmark:'XI',status:'Active · Second Venture',color:'#d4b472',description:'An AI workforce platform where domain experts create, deploy, and earn from AI workers trained on their knowledge. Built for the professionals, operators, and creators defining the next era of work.',description2:'The platform compounds with every deployment. Early access is by invitation.',model:'Intelligence Infrastructure',stage:'Building',category:'AI · Future of Work',link:null,linkText:null}];
-    function updateVentureCount(){const activeVentures=VENTURES.filter(v=>v.stage.includes('Active')).length;const countElement=document.getElementById('venture-count');if(countElement){countElement.innerHTML=`0${activeVentures}<em>+</em>`;}}
-    class ConstellationView{
-      constructor(){this.canvas=document.getElementById('constellation-canvas');this.ctx=this.canvas.getContext('2d');this.overlay=document.getElementById('constellation-overlay');this.container=document.getElementById('constellation-container');this.stars=[];this.connections=[];this.labelElements=[];this.badgeElements=[];this.init();this.setupEventListeners();this.animate();updateVentureCount();}
-      init(){this.resizeCanvas();this.createStars();this.createConnections();this.createLabelsAndBadges();window.addEventListener('resize',()=>this.resizeCanvas());}
-      resizeCanvas(){this.canvas.width=this.container.clientWidth;this.canvas.height=this.container.clientHeight;this.createStars();this.createLabelsAndBadges();}
-      createStars(){this.stars=[];const centerX=this.canvas.width/2;const centerY=this.canvas.height/2;const radius=Math.min(this.canvas.width,this.canvas.height)*0.25;VENTURES.forEach((venture,index)=>{const angle=(index/VENTURES.length)*Math.PI*2-Math.PI/2;const x=centerX+Math.cos(angle)*radius;const y=centerY+Math.sin(angle)*radius;const star={x,y,radius:12,color:venture.color,venture,originalX:x,originalY:y,pulsePhase:Math.random()*Math.PI*2};this.stars.push(star);this.createStarElement(star);});}
-      createStarElement(star){const element=document.createElement('div');element.className='venture-star';element.style.left=(star.x-star.radius)+'px';element.style.top=(star.y-star.radius)+'px';element.style.width=(star.radius*2.5)+'px';element.style.height=(star.radius*2.5)+'px';element.style.pointerEvents='auto';element.innerHTML=`<svg width="${star.radius*2}" height="${star.radius*2}" viewBox="0 0 24 24" style="filter: drop-shadow(0 0 8px ${star.color});"><circle cx="12" cy="12" r="8" fill="${star.color}" opacity="0.8"/><circle cx="12" cy="12" r="6" fill="${star.color}" opacity="0.4"/></svg>`;element.addEventListener('click',(e)=>{e.stopPropagation();this.openPortal(star.venture);});this.overlay.appendChild(element);}
-      createLabelsAndBadges(){this.labelElements.forEach(el=>el.remove());this.badgeElements.forEach(el=>el.remove());this.labelElements=[];this.badgeElements=[];this.stars.forEach(star=>{const labelDiv=document.createElement('div');labelDiv.className='venture-label';labelDiv.style.left=(star.x-60)+'px';labelDiv.style.top=(star.y+40)+'px';labelDiv.style.color=star.color;labelDiv.textContent=star.venture.name;labelDiv.style.cursor='pointer';labelDiv.addEventListener('click',(e)=>{e.stopPropagation();this.openPortal(star.venture);});this.overlay.appendChild(labelDiv);this.labelElements.push(labelDiv);const badgeDiv=document.createElement('div');badgeDiv.className='venture-badge';badgeDiv.style.left=(star.x-30)+'px';badgeDiv.style.top=(star.y+65)+'px';badgeDiv.style.borderColor=star.color;badgeDiv.style.color=star.color;badgeDiv.textContent=star.venture.stage.split('·')[1].trim();badgeDiv.style.cursor='pointer';badgeDiv.addEventListener('click',(e)=>{e.stopPropagation();this.openPortal(star.venture);});this.overlay.appendChild(badgeDiv);this.badgeElements.push(badgeDiv);});}
-      createConnections(){for(let i=0;i<this.stars.length;i++){for(let j=i+1;j<this.stars.length;j++){const dx=this.stars[j].x-this.stars[i].x;const dy=this.stars[j].y-this.stars[i].y;const distance=Math.sqrt(dx*dx+dy*dy);if(distance<400){this.connections.push({star1:this.stars[i],star2:this.stars[j],opacity:0.1+(1-distance/400)*0.3});}}}}
-      animate(){this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);this.connections.forEach(conn=>{this.ctx.strokeStyle=`rgba(192, 158, 83, ${conn.opacity})`;this.ctx.lineWidth=1;this.ctx.beginPath();this.ctx.moveTo(conn.star1.x,conn.star1.y);this.ctx.lineTo(conn.star2.x,conn.star2.y);this.ctx.stroke();});this.stars.forEach(star=>{star.pulsePhase+=0.02;const pulse=Math.sin(star.pulsePhase)*0.3+1;this.ctx.fillStyle=star.color;this.ctx.globalAlpha=0.6+Math.sin(star.pulsePhase)*0.2;this.ctx.beginPath();this.ctx.arc(star.x,star.y,star.radius*pulse,0,Math.PI*2);this.ctx.fill();this.ctx.globalAlpha=0.3;this.ctx.beginPath();this.ctx.arc(star.x,star.y,star.radius*pulse*1.5,0,Math.PI*2);this.ctx.stroke();});this.ctx.globalAlpha=1;requestAnimationFrame(()=>this.animate());}
-      setupEventListeners(){document.getElementById('portal-close').addEventListener('click',()=>this.closePortal());this.canvas.addEventListener('click',(e)=>{const rect=this.canvas.getBoundingClientRect();const x=e.clientX-rect.left;const y=e.clientY-rect.top;for(let star of this.stars){const dx=x-star.x;const dy=y-star.y;const distance=Math.sqrt(dx*dx+dy*dy);if(distance<25){this.openPortal(star.venture);break;}}});}
-      openPortal(venture){const portalView=document.getElementById('portal-view');const portalContent=document.getElementById('portal-content');portalContent.innerHTML=`<div class="portal-venture-card"><div class="portal-venture-header"><div class="portal-venture-visual"><div class="portal-venture-wordmark">${venture.wordmark}</div><div class="portal-venture-name">${venture.name}</div><div class="portal-venture-status">${venture.status}</div></div><div class="portal-venture-details"><div><p class="portal-venture-description">${venture.description}</p><p class="portal-venture-description" style="margin-top: 16px;">${venture.description2}</p></div><div class="portal-venture-meta"><div class="portal-meta-item"><span class="portal-meta-label">Model</span><span class="portal-meta-value">${venture.model}</span></div><div class="portal-meta-item"><span class="portal-meta-label">Stage</span><span class="portal-meta-value">${venture.stage}</span></div><div class="portal-meta-item"><span class="portal-meta-label">Category</span><span class="portal-meta-value">${venture.category}</span></div></div>${venture.link?`<a href="${venture.link}" target="_blank" rel="noopener noreferrer" class="portal-venture-cta">${venture.linkText}</a>`:''}</div></div></div>`;portalView.classList.remove('hidden');document.body.style.overflow='hidden';}
-      closePortal(){const portalView=document.getElementById('portal-view');portalView.classList.add('hidden');document.body.style.overflow='';}
-    }
-    document.addEventListener('DOMContentLoaded',()=>{new ConstellationView();});
-  </script>
+
 
   <!-- Scroll to Top Button -->
   <div id="scroll-to-top" class="scroll-to-top">
