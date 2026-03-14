@@ -1556,6 +1556,61 @@
     @keyframes orbit { from { transform: rotate(0deg) translateX(60px) rotate(0deg); } to { transform: rotate(360deg) translateX(60px) rotate(-360deg); } }
     .orbit-text { animation: orbit 8s linear infinite; }
     .orbit-status { animation: orbit 8s linear infinite; }
+
+    /* ====================================================
+       SCROLL TO TOP BUTTON
+    ==================================================== */
+    .scroll-to-top {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      width: 48px;
+      height: 48px;
+      background: rgba(192, 158, 83, 0.1);
+      border: 1px solid var(--rule-gold);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      z-index: 999;
+      backdrop-filter: blur(10px);
+    }
+    
+    .scroll-to-top.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .scroll-to-top:hover {
+      background: rgba(192, 158, 83, 0.2);
+      border-color: var(--gold);
+      transform: translateY(-4px);
+    }
+    
+    .scroll-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--gold);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+    
+    @media (max-width: 768px) {
+      .scroll-to-top {
+        bottom: 24px;
+        right: 24px;
+        width: 44px;
+        height: 44px;
+      }
+      .scroll-label {
+        font-size: 0.65rem;
+      }
+    }
   </style>
   <!-- Cloudflare Turnstile CAPTCHA (loads only if site key is configured) -->
   <script>
@@ -1647,7 +1702,7 @@
         <div class="strip-label">Workforce OS</div>
       </div>
       <div class="strip-item">
-        <div class="strip-num">01<em>+</em></div>
+        <div class="strip-num" id="venture-count">02<em>+</em></div>
         <div class="strip-label">Active Ventures</div>
       </div>
       <div class="strip-item">
@@ -2454,8 +2509,35 @@
     document.addEventListener('DOMContentLoaded',()=>{new ConstellationView();});
   </script>
 
+  <!-- Scroll to Top Button -->
+  <div id="scroll-to-top" class="scroll-to-top">
+    <span class="scroll-label">↑ Ascend</span>
+  </div>
+
   <!-- React root for CRA compatibility -->
   <div id="root"></div>
+
+  <!-- Scroll to Top Functionality -->
+  <script>
+    const scrollToTopBtn = document.getElementById('scroll-to-top');
+    
+    // Show/hide button based on scroll position
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 300) {
+        scrollToTopBtn.classList.add('visible');
+      } else {
+        scrollToTopBtn.classList.remove('visible');
+      }
+    });
+    
+    // Scroll to top on click
+    scrollToTopBtn.addEventListener('click', () => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    });
+  </script>
 
 </body>
 </html>
