@@ -10,7 +10,7 @@ import uuid
 class AmbientAITester:
     def __init__(self):
         # Use the public endpoint from frontend .env
-        self.base_url = "https://quest-builder-110.preview.emergentagent.com"
+        self.base_url = "https://xi-ventures-dev.preview.emergentagent.com"
         self.tests_run = 0
         self.tests_passed = 0
         self.session_id = str(uuid.uuid4())  # Generate unique session ID
