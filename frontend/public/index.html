@@ -253,7 +253,7 @@
       letter-spacing: 0.38em;
       text-transform: uppercase;
       color: var(--gold);
-      margin-bottom: 32px;
+      margin-bottom: 40px;
       opacity: 0;
       animation: fadeUp 0.9s ease forwards 0.5s;
     }
@@ -696,7 +696,7 @@
       text-transform: uppercase;
       color: var(--gold);
       margin-top: 10px;
-      margin-bottom: 32px;
+      margin-bottom: 40px;
     }
     .founder-bio { display: flex; flex-direction: column; gap: 20px; }
     .founder-bio p {
@@ -926,7 +926,7 @@
     
     /* Conversation Area */
     .conversation-area {
-      margin-bottom: 32px;
+      margin-bottom: 40px;
       max-height: 400px;
       overflow-y: auto;
     }
@@ -1101,7 +1101,7 @@
       font-size: 0.95rem;
       font-weight: 300;
       color: var(--dimmer);
-      margin-bottom: 32px;
+      margin-bottom: 40px;
       line-height: 1.6;
     }
     
@@ -1446,7 +1446,7 @@
       cursor: pointer;
       padding: 0;
       transition: color 0.2s;
-      margin-bottom: 32px;
+      margin-bottom: 40px;
     }
     .modal-close:hover { color: var(--white); }
     .modal-title {
@@ -1521,23 +1521,23 @@
     ==================================================== */
     .scroll-to-top {
       position: fixed;
-      bottom: 32px;
-      right: 32px;
+      bottom: 40px;
+      right: 40px;
       width: auto;
-      height: 48px;
-      padding: 0 12px;
-      background: rgba(192, 158, 83, 0.1);
-      border: 1px solid var(--rule-gold);
-      border-radius: 8px;
+      height: auto;
+      padding: 8px 0;
+      background: transparent;
+      border: none;
+      border-top: 1px solid var(--rule-gold);
+      border-bottom: 1px solid var(--rule-gold);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       opacity: 0;
       visibility: hidden;
-      transition: all 0.3s ease;
+      transition: all 0.4s ease;
       z-index: 999;
-      backdrop-filter: blur(10px);
     }
     
     .scroll-to-top.visible {
@@ -1546,33 +1546,30 @@
     }
     
     .scroll-to-top:hover {
-      background: rgba(192, 158, 83, 0.2);
-      border-color: var(--gold);
-      transform: translateY(-4px);
+      transform: translateY(-3px);
     }
     
     .scroll-label {
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       font-weight: 600;
       color: var(--gold);
-      letter-spacing: 0.05em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
       line-height: 1;
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
+      padding: 0 12px;
     }
     
     @media (max-width: 768px) {
       .scroll-to-top {
-        bottom: 24px;
-        right: 24px;
-        width: auto;
-        height: 44px;
-        padding: 0 10px;
+        bottom: 32px;
+        right: 32px;
       }
       .scroll-label {
         font-size: 0.65rem;
+        padding: 0 10px;
       }
     }
   </style>
